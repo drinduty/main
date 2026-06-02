@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive IV Fluid & Parenteral Nutrition Calculator</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #eff6ff;
+            --text: #1f2937;
+            --border: #e5e7eb;
+            --warning: #b45309;
+            --warning-bg: #fffbeb;
+            --danger: #b91c1c;
+            --danger-bg: #fef2f2;
+            --success: #15803d;
+            --success-bg: #f0fdf4;
+            --gray-bg: #f9fafb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--text);
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.25rem;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary);
+            padding-left: 8px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--primary-light);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dbeafe;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        input[type="number"], select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-group input {
+            width: 18px;
+            height: 18px;
+            margin-top: 2px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .alert-danger {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            border: 1px solid #fca5a5;
+        }
+
+        .alert-warning {
+            background-color: var(--warning-bg);
+            color: var(--warning);
+            border: 1px solid #fcd34d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: var(--gray-bg);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .section-header-row {
+            background-color: #f1f5f9;
+            font-weight: bold;
+        }
+
+        .value-highlight {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .flex-tables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .flex-tables {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .bullet-list {
+            padding-left: 20px;
+            font-size: 0.9rem;
+        }
+
+        .bullet-list li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>IV Fluid & Parenteral Nutrition (PN) Calculator</h1>
+    
+    <!-- Critical Alerts -->
+    <div id="specialistAlert" class="alert alert-danger">
+        ⚠️ STOP: Consult with an appropriate specialist (e.g., nephrologist / registered dietitian). Patient has a complex fluid/electrolyte redistribution issue or high metabolic risk.
+    </div>
+    <div id="capAlert" class="alert alert-warning">
+        ⚠️ Fluid Restriction Note: Calculated routine maintenance fluid has been capped at the clinical threshold of 3 L/day.
+    </div>
+    <div id="permissiveAlert" class="alert alert-warning">
+        ⚠️ ASPEN Critical Illness Warning: Implementing mild permissive underfeeding targets (caloric ceiling applied).
+    </div>
+
+    <div class="grid">
+        <!-- Inputs Column -->
+        <div>
+            <h2>1. Patient Parameters</h2>
+            <div class="form-group">
+                <label for="weight">Actual Body Weight (kg)</label>
+                <input type="number" id="weight" value="70" min="10" max="300" oninput="calculateAll()">
+            </div>
+            <div class="form-group">
+                <label for="height">Height (cm)</label>
+                <input type="number" id="height" value="175" min="100" max="250" oninput="calculateAll()">
+            </div>
+            <div class="form-group">
+                <label for="age">Age (years)</label>
+                <input type="number" id="age" value="45" min="18" max="120" oninput="calculateAll()">
+            </div>
+            <div class="form-group">
+                <label for="gender">Biological Sex</label>
+                <select id="gender" onchange="calculateAll()">
+                    <option value="M">Male</option>
+                    <option value="F">Female</option>
+                </select>
+            </div>
+
+            <h2>2. Clinical & Metabolic Status</h2>
+            <div class="card">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="criticallyIll" onchange="calculateAll()">
+                    <label for="criticallyIll"><strong>Critically Ill Patient? (Triggers ASPEN Guidelines)</strong></label>
+                </div>
+                
+                <label style="margin-top:10px;">Protein Catabolic State / Renal Function:</label>
+                <select id="proteinStatus" onchange="calculateAll()" style="margin-bottom:15px;">
+                    <option value="maintenance">Standard Maintenance</option>
+                    <option value="catabolic">Catabolic State (Severe Infection, Trauma)</option>
+                    <option value="crf_rrt">Chronic Renal Failure on RRT</option>
+                    <option value="arf_catabolic">Acute Renal Failure & Catabolic</option>
+                </select>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="frail" onchange="calculateAll()">
+                    <label for="frail">Frail or routine fluid restriction indicators</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="renalCardiac" onchange="calculateAll()">
+                    <label for="renalCardiac">Severe chronic renal impairment or heart failure</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="malnourished" onchange="calculateAll()">
+                    <label for="malnourished">Malnourished / Refeeding Syndrome risk</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="complex" onchange="calculateAll()">
+                    <label style="color: var(--danger);" for="complex">Complex redistribution/imbalance (Severe sepsis, gross edema, hypo/hypernatremia)</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Outputs Column -->
+        <div>
+            <h2>3. Dynamically Calculated Requirements</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Calculated Target Values</th>
+                        <th>Reference Framework</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Calculated BMI</td>
+                        <td><span id="bmiOut" class="value-highlight">-</span> kg/m²</td>
+                        <td><span id="obesityNote" style="font-weight:bold; color:var(--warning);"></span></td>
+                    </tr>
+                    <tr>
+                        <td>Dosing Weight Used</td>
+                        <td><span id="dosingWeightOut" class="value-highlight">-</span> kg</td>
+                        <td>NICE: Use IBW if BMI ≥ 30</td>
+                    </tr>
+                    <!-- Fluids and Energy -->
+                    <tr class="section-header-row"><td colspan="3">Macronutrients & Volumetrics</td></tr>
+                    <tr>
+                        <td>Fluid Target Range</td>
+                        <td><span id="fluidOut" class="value-highlight" style="color:var(--success);">-</span> mL/day</td>
+                        <td><span id="fluidRef">-</span></td>
+                    </tr>
+                    <tr>
+                        <td>Energy Target</td>
+                        <td><span id="energyOut" class="value-highlight">-</span> kcal/day</td>
+                        <td><span id="energyRef">-</span></td>
+                    </tr>
+                    <tr>
+                        <td>Protein Target</td>
+                        <td><span id="proteinOut" class="value-highlight">-</span> g/day</td>
+                        <td>Based on clinical phenotype status</td>
+                    </tr>
+                    <tr>
+                        <td>Glucose Core Base</td>
+                        <td><strong>50 - 100 g/day</strong></td>
+                        <td>NICE: Minimum to prevent ketosis</td>
+                    </tr>
+                    <!-- Electrolytes -->
+                    <tr class="section-header-row"><td colspan="3">Parenteral Electrolyte Targets</td></tr>
+                    <tr>
+                        <td>Sodium (Na⁺)</td>
+                        <td><span id="sodiumOut" class="value-highlight">-</span> mEq/day</td>
+                        <td>1 - 2 mEq/kg/day (NICE ~1 mmol/kg)</td>
+                    </tr>
+                    <tr>
+                        <td>Potassium (K⁺)</td>
+                        <td><span id="potassiumOut" class="value-highlight">-</span> mEq/day</td>
+                        <td>1 - 2 mEq/kg/day (NICE ~1 mmol/kg)</td>
+                    </tr>
+                    <tr>
+                        <td>Calcium (Ca²⁺)</td>
+                        <td><strong>10 - 15 mEq/day</strong></td>
+                        <td>Parenteral Standard Range</td>
+                    </tr>
+                    <tr>
+                        <td>Magnesium (Mg²⁺)</td>
+                        <td><strong>8 - 20 mEq/day</strong></td>
+                        <td>Restrict if severe renal disease</td>
+                    </tr>
+                    <tr>
+                        <td>Phosphorus</td>
+                        <td><strong>20 - 40 mmol/day</strong></td>
+                        <td>Monitor closely in refeeding status</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>4. Fixed-Tier Maintenance Guidance (GIFTASUP)</h2>
+            <div class="card" style="background-color: var(--gray-bg); border: 1px solid var(--border); color: var(--text);">
+                <p>Routine empirical backup values based on weight bracket:</p>
+                <p>Target Maintenance Volume: <span id="giftVol" class="value-highlight">-</span> mL/day</p>
+                <p>Calculated Pump Flow Rate: <span id="giftRate" class="value-highlight" style="color:var(--success);">-</span> mL/hour</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Micronutrient Specs -->
+    <h2>5. Standard Daily Parenteral Supplementation Standards</h2>
+    <div class="flex-tables">
+        <div>
+            <table style="font-size:0.85rem;">
+                <thead>
+                    <tr><th colspan="2">Daily Vitamins Reference</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Thiamine (B1) / Riboflavin (B2)</td><td>6 mg / 3.6 mg</td></tr>
+                    <tr><td>Niacin (B3) / Folic Acid</td><td>40 mg / 600 mcg</td></tr>
+                    <tr><td>Pantothenic Acid / Pyridoxine (B6)</td><td>15 mg / 6 mg</td></tr>
+                    <tr><td>Cyanocobalamin (B12) / Biotin</td><td>5 mcg / 60 mcg</td></tr>
+                    <tr><td>Ascorbic Acid (C)</td><td>200 mg</td></tr>
+                    <tr><td>Vitamin A / D / E</td><td>3,300 U / 200 U / 10 U</td></tr>
+                    <tr><td>Vitamin K</td><td>150 mcg</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <table style="font-size:0.85rem;">
+                <thead>
+                    <tr><th colspan="2">Daily Trace Elements Reference</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Zinc</td><td>2.5 - 5 mg/day</td></tr>
+                    <tr><td>Copper</td><td>0.3 - 0.5 mg/day</td></tr>
+                    <tr><td>Chromium</td><td>10 - 15 mcg/day</td></tr>
+                    <tr><td>Manganese</td><td>60 - 100 mcg/day</td></tr>
+                    <tr><td>Selenium</td><td>20 - 60 mcg/day</td></tr>
+                    <tr style="font-weight: 600; color: var(--danger-bg);">
+                        <td>Iron Additions</td>
+                        <td style="color: var(--danger);">Not routinely added</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2>6. Clinical Guidance & Essential Safeguards</h2>
+    <div class="grid" style="grid-template-columns: 1fr 1fr; font-size:0.9rem;">
+        <div>
+            <strong>Critical Illness Strategy (ASPEN):</strong>
+            <ul class="bullet-list">
+                <li>If <strong>Permissive Underfeeding</strong> is active, scale targets to 80% (or 60-70% for obese patients). Advance to 100% metabolic target only after hemodynamics stabilize.</li>
+                <li>Avoid rapid lipid emulsion infusions in cases of severe pulmonary failure to minimize hypercapnia.</li>
+                <li>Ensure inclusion of combined antioxidant vitamins (Vit E & C) alongside Selenium (Grade B).</li>
+                <li>Consider specialized parenteral glutamine options where clinically indicated (Grade C).</li>
+            </ul>
+        </div>
+        <div>
+            <strong>Routine Monitoring Mandates:</strong>
+            <ul class="bullet-list">
+                <li><strong>Biochemical Panels:</strong> Check daily or frequent FBC, Urea, Creatinine, and Electrolytes (K, PO4, Mg tracking).</li>
+                <li><strong>Bedside Parameters:</strong> Check JVP, peripheral/pulmonary edema, capillary refill, and structural postural hypotension risks.</li>
+                <li><strong>Logistics:</strong> Stop specialized continuous IV therapies promptly as soon as oral or standard enteral nutrition pathways are clinically viable.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateAll() {
+    // Collect Inputs
+    const weight = parseFloat(document.getElementById('weight').value) || 0;
+    const height = parseFloat(document.getElementById('height').value) || 0;
+    const age = parseFloat(document.getElementById('age').value) || 0;
+    const gender = document.getElementById('gender').value;
+    
+    const isCriticallyIll = document.getElementById('criticallyIll').checked;
+    const proteinStatus = document.getElementById('proteinStatus').value;
+    const isFrail = document.getElementById('frail').checked;
+    const isRenalCardiac = document.getElementById('renalCardiac').checked;
+    const isMalnourished = document.getElementById('malnourished').checked;
+    const isComplex = document.getElementById('complex').checked;
+
+    // Show/Hide Complex Alert
+    document.getElementById('specialistAlert').style.display = isComplex ? 'block' : 'none';
+
+    // 1. BMI Calculation
+    let bmi = 0;
+    if (height > 0) bmi = weight / ((height / 100) ** 2);
+    document.getElementById('bmiOut').innerText = bmi.toFixed(1);
+
+    // 2. Ideal Body Weight Calculation (Devine Formula)
+    const inchesOver5Foot = (height / 2.54) - 60;
+    let ibw = gender === 'M' ? 50 + (2.3 * inchesOver5Foot) : 45.5 + (2.3 * inchesOver5Foot);
+    if (ibw < 0) ibw = weight; 
+
+    // 3. Determine Dosing Weight
+    let dosingWeight = weight;
+    const isObese = bmi >= 30;
+    if (isObese) {
+        dosingWeight = ibw;
+        document.getElementById('obesityNote').innerText = "(Obese: Using IBW)";
+    } else {
+        document.getElementById('obesityNote').innerText = "";
+    }
+    document.getElementById('dosingWeightOut').innerText = dosingWeight.toFixed(1);
+
+    // 4. Fluid Requirement Logic
+    let minFluidFactor, maxFluidFactor, fluidRefText;
+    
+    if (isFrail || isRenalCardiac || isMalnourished) {
+        minFluidFactor = 20; maxFluidFactor = 25;
+        fluidRefText = "Restricted (20-25 mL/kg)";
+    } else if (age >= 65) {
+        minFluidFactor = 25; maxFluidFactor = 25;
+        fluidRefText = "Elderly Target (25 mL/kg - Nelms)";
+    } else {
+        minFluidFactor = 30; maxFluidFactor = 40;
+        fluidRefText = "Standard Target (30-40 mL/kg)";
+    }
+
+    let lowerFluid = minFluidFactor * dosingWeight;
+    let upperFluid = maxFluidFactor * dosingWeight;
+
+    // Fluid Cap Protection
+    if (lowerFluid > 3000) lowerFluid = 3000;
+    if (upperFluid > 3000) {
+        upperFluid = 3000;
+        document.getElementById('capAlert').style.display = 'block';
+    } else {
+        document.getElementById('capAlert').style.display = 'none';
+    }
+    
+    document.getElementById('fluidOut').innerText = Math.round(lowerFluid) === Math.round(upperFluid) ? 
+        Math.round(lowerFluid) : Math.round(lowerFluid) + " - " + Math.round(upperFluid);
+    document.getElementById('fluidRef').innerText = fluidRefText;
+
+    // 5. Energy Requirements (ASPEN Rules Integration)
+    let baseEnergyMin = 20 * dosingWeight;
+    let baseEnergyMax = 30 * dosingWeight;
+    let energyRefText = "Standard (20-30 kcal/kg)";
+
+    if (isCriticallyIll) {
+        document.getElementById('permissiveAlert').style.display = 'block';
+        if (isObese) {
+            // 60-70% Permissive Underfeeding for Obesity
+            baseEnergyMin = (20 * dosingWeight) * 0.6;
+            baseEnergyMax = (30 * dosingWeight) * 0.7;
+            energyRefText = "ASPEN Obese Underfeed (60-70%)";
+        } else {
+            // 80% Permissive Underfeeding for Non-Obese
+            baseEnergyMin = (20 * dosingWeight) * 0.8;
+            baseEnergyMax = (30 * dosingWeight) * 0.8;
+            energyRefText = "ASPEN Mild Underfeed (80%)";
+        }
+    } else {
+        document.getElementById('permissiveAlert').style.display = 'none';
+    }
+    document.getElementById('energyOut').innerText = Math.round(baseEnergyMin) + " - " + Math.round(baseEnergyMax);
+    document.getElementById('energyRef').innerText = energyRefText;
+
+    // 6. Protein Requirements Logic
+    let proMinFactor = 0.8, proMaxFactor = 1.0;
+    if (proteinStatus === 'catabolic') { proMinFactor = 1.2; proMaxFactor = 2.0; }
+    else if (proteinStatus === 'crf_rrt') { proMinFactor = 1.2; proMaxFactor = 1.5; }
+    else if (proteinStatus === 'arf_catabolic') { proMinFactor = 1.5; proMaxFactor = 1.8; }
+
+    let lowerProtein = proMinFactor * dosingWeight;
+    let upperProtein = proMaxFactor * dosingWeight;
+    document.getElementById('proteinOut').innerText = lowerProtein.toFixed(1) + " - " + upperProtein.toFixed(1);
+
+    // 7. Electrolytes Matrix (1-2 mEq/kg/day standard matching)
+    let lowerElec = 1 * dosingWeight;
+    let upperElec = 2 * dosingWeight;
+    document.getElementById('sodiumOut').innerText = Math.round(lowerElec) + " - " + Math.round(upperElec);
+    document.getElementById('potassiumOut').innerText = Math.round(lowerElec) + " - " + Math.round(upperElec);
+
+    // 8. Fixed Bracket Framework (GIFTASUP / Br J Hosp Med reference)
+    let giftVolValue = 2400, giftRateValue = 100;
+    if (weight >= 35 && weight <= 44) { giftVolValue = 1200; giftRateValue = 50; }
+    else if (weight >= 45 && weight <= 54) { giftVolValue = 1500; giftRateValue = 65; }
+    else if (weight >= 55 && weight <= 64) { giftVolValue = 1800; giftRateValue = 75; }
+    else if (weight >= 65 && weight <= 74) { giftVolValue = 2100; giftRateValue = 85; }
+    else if (weight < 35) { giftVolValue = 0; giftRateValue = 0; }
+
+    document.getElementById('giftVol').innerText = giftVolValue > 0 ? giftVolValue : "N/A";
+    document.getElementById('giftRate').innerText = giftRateValue > 0 ? giftRateValue : "N/A";
+}
+
+// Initial application execution load
+window.onload = function() {
+    calculateAll();
+};
+</script>
+
+</body>
+</html>
