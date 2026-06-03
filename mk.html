@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>民國出生年月日換算年齡</title>
+    <style>
+        body {
+            font-family: "Helvetica Neue", Helvetica, Arial, "Microsoft JhengHei", sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #357abd;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eef5fc;
+            border-left: 5px solid #4a90e2;
+            border-radius: 4px;
+            display: none;
+        }
+        .result p {
+            margin: 5px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .error {
+            color: #d9534f;
+            background-color: #fdf7f7;
+            border-left-color: #d9534f;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>民國年齡計算器</h2>
+    
+    <div class="form-group">
+        <label for="rocYear">民國出生年</label>
+        <input type="number" id="rocYear" placeholder="例如：85" min="1">
+    </div>
+    
+    <div class="form-group">
+        <label for="month">出生月</label>
+        <input type="number" id="month" placeholder="1 - 12" min="1" max="12">
+    </div>
+    
+    <div class="form-group">
+        <label for="day">出生日</label>
+        <input type="number" id="day" placeholder="1 - 31" min="1" max="31">
+    </div>
+    
+    <button onclick="calculateAge()">開始換算</button>
+    
+    <div id="resultBox" class="result">
+        <p id="adDateText"></p>
+        <p id="ageText" style="font-weight: bold; color: #2c3e50; font-size: 18px;"></p>
+    </div>
+</div>
+
+<script>
+    function calculateAge() {
+        const rocYear = parseInt(document.getElementById('rocYear').value);
+        const month = parseInt(document.getElementById('month').value);
+        const day = parseInt(document.getElementById('day').value);
+        const resultBox = document.getElementById('resultBox');
+        const adDateText = document.getElementById('adDateText');
+        const ageText = document.getElementById('ageText');
+
+        // 基礎驗證
+        if (isNaN(rocYear) || isNaN(month) || isNaN(day)) {
+            showError("請完整輸入年、月、日！");
+            return;
+        }
+
+        // 民國轉西元
+        const adYear = rocYear + 1911;
+
+        // 檢查日期是否合法（例如 2月30日 等不合法日期）
+        const birthDate = new Date(adYear, month - 1, day);
+        if (birthDate.getFullYear() !== adYear || birthDate.getMonth() !== (month - 1) || birthDate.getDate() !== day) {
+            showError("輸入的日期不存在，請檢查是否正確！");
+            return;
+        }
+
+        // 取得目前時間
+        const today = new Date();
+
+        // 檢查生日是否大於今天
+        if (birthDate > today) {
+            showError("出生日期不能大於今天！");
+            return;
+        }
+
+        // 精確計算年、月、日差距
+        let ageYears = today.getFullYear() - birthDate.getFullYear();
+        let ageMonths = today.getMonth() - birthDate.getMonth();
+        let ageDays = today.getDate() - birthDate.getDate();
+
+        // 天數不夠減，向前一個月借天數
+        if (ageDays < 0) {
+            ageMonths--;
+            // 取得上個月的最後一天是幾號
+            const previousMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+            ageDays += previousMonth.getDate();
+        }
+
+        // 月份不夠減，向前一年借月份
+        if (ageMonths < 0) {
+            ageYears--;
+            ageMonths += 12;
+        }
+
+        // 顯示結果
+        resultBox.classList.remove('error');
+        resultBox.style.display = 'block';
+        adDateText.innerHTML = `對應西元生日：<b>${adYear} 年 ${month} 月 ${day} 日</b>`;
+        ageText.innerHTML = `目前年齡：<b>${ageYears} 歲 ${ageMonths} 個月又 ${ageDays} 天</b>`;
+    }
+
+    function showError(message) {
+        const resultBox = document.getElementById('resultBox');
+        const ageText = document.getElementById('ageText');
+        document.getElementById('adDateText').innerText = "";
+        
+        resultBox.classList.add('error');
+        resultBox.style.display = 'block';
+        ageText.innerText = message;
+    }
+</script>
+
+</body>
+</html>
